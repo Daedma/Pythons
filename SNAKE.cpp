@@ -1,21 +1,26 @@
 #include "SNAKE.h"
 #include  <stdexcept>
 
-Snake::Snake(const COORD& beg_coord, const Field& _field, double beg_speed) :
+Snake::Snake(const COORD& beg_coord, Field& _field, double beg_speed) :
 	speed(beg_speed), field(&_field), snake_course(RIGHT), apple(_field.get_width(), _field.get_height(), this)
 {
-	if ((beg_coord.X <= (_field.get_width() - 3)) && (beg_coord.X >= FIELD_BEGIN_X) && (beg_coord.Y <= _field.get_height()) && (beg_coord.Y >= FIELD_BEGIN_Y))
+	build(beg_coord, _field);
+}
+
+void Snake::build(const COORD& beg_coord, const Field& _field)
+{
+	if ((beg_coord.X <= (_field.get_width() - (INITIAL_SNAKE_SIZE + 1))) && (beg_coord.X >= FIELD_BEGIN_X) && (beg_coord.Y <= _field.get_height()) && (beg_coord.Y >= FIELD_BEGIN_Y))
 	{
 		COORD crd = beg_coord;
-		for (unsigned i = 0; i != 7; ++i, ++crd.X)
+		for (unsigned i = 0; i != INITIAL_SNAKE_SIZE + 1; ++i, ++crd.X)
 		{
 			coord.push_back(crd);
 		}
 	}
-	else if ((beg_coord.X == (_field.get_width())) && (beg_coord.Y <= (_field.get_width() - 3)))
+	else if ((beg_coord.X == (_field.get_width() - 1)) && (beg_coord.Y <= (_field.get_height() - (INITIAL_SNAKE_SIZE + 1))))
 	{
 		COORD crd = beg_coord;
-		for (unsigned i = 0; i != 7; ++i, ++crd.Y)
+		for (unsigned i = 0; i != INITIAL_SNAKE_SIZE + 1; ++i, ++crd.Y)
 		{
 			coord.push_back(crd);
 		}
@@ -24,13 +29,14 @@ Snake::Snake(const COORD& beg_coord, const Field& _field, double beg_speed) :
 		throw std::invalid_argument("Invalid coordinates");
 }
 
-void Snake::draw()
+void Snake::draw() const
 {
+	SetConsoleTextAttribute(hConsole, SNAKE_COLOR);
 	auto it = coord.begin()+1;
 	while (it != coord.end())
 	{
 		SetConsoleCursorPosition(hConsole, *it);
-		std::cout << char(254);
+		std::cout << char(SNAKE);
 		++it;
 	}
 	apple.draw();
@@ -39,10 +45,12 @@ void Snake::draw()
 void Snake::draw_in_motion()
 {
 	SetConsoleCursorPosition(hConsole, coord.back());
-	std::cout << char(254);
+	SetConsoleTextAttribute(hConsole, SNAKE_COLOR);
+	std::cout << char(SNAKE);
 	SetConsoleCursorPosition(hConsole, coord.front());
+	SetConsoleTextAttribute(hConsole, FIELD_COLOR);
 	std::cout << field->get_agg();
-	Sleep(100 / speed);
+	Sleep(INITIAL_SPEED / speed);
 }
 
 void Snake::move()
